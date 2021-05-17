@@ -18,9 +18,15 @@ class ClienteController (@Inject val clienteRepository: ClienteRepository,
         //Fazer uma comunicação com o erp itau para preencher o objeto cliente
 
         val clienteResponse = clienteConsulta.consulta(request.clienteId, request.tipo.name)
-        val cliente = Cliente(clienteResponse.titular.cpf, clienteResponse.titular.id, clienteResponse.tipo)
+        //val cliente = Cliente(clienteResponse.titular.cpf, clienteResponse.titular.id, clienteResponse.tipo)
 
-        val chavePix = ChavePix(TipoChave.valueOf(request.tipoChave.toString()), request.valChave)
+        val chavePix = ChavePix(
+            TipoChave.valueOf(request.tipoChave.toString()),
+            request.valChave,
+            clienteResponse.titular.cpf,
+            clienteResponse.titular.id,
+            clienteResponse.tipo
+        )
 
         clienteRepository.save(chavePix)
 
