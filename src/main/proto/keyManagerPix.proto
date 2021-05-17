@@ -7,14 +7,33 @@ option objc_class_prefix = "HLW";
 
 package br.com.zupacademy.valeria;
 
+//Metodo onde eu vou definir meus endpoints
 service KeyManagerPixService {
-  rpc send (KeyManagerPixRequest) returns (KeyManagerPixReply) {}
+  rpc cadastrarChavePix (KeyManagerPixRequest) returns (KeyManagerPixReply) {}
 }
 
+//message = as classes que eu preciso para manipular. É ideial que essas messages sejam coerentes com as classes em kotlin
 message KeyManagerPixRequest {
-  string name = 1;
+    string clienteId = 1;
+    TipoChave tipoChave = 2;
+    string valChave = 3;
+    TipoConta tipo = 4;
+}
+//
+message KeyManagerPixReply {
+    string valChave = 1;
 }
 
-message KeyManagerPixReply {
-  string message = 1;
+enum TipoChave {
+    TIPO_CHAVE_DESCONHECIDO = 0;
+    CPF = 1;
+    CELULAR = 2;
+    EMAIL = 3;
+    RANDOM = 4;
+}
+
+enum TipoConta {
+    TIPO_CONTA_DESCONHECIDO = 0;
+    CONTA_CORRENTE = 1;
+    CONTA_POUPANCA = 2;
 }
