@@ -1,7 +1,7 @@
 package br.com.zupacademy.valeria.chavePix
 
 import javax.persistence.*
-import javax.validation.constraints.NotBlank
+
 
 @Entity
 class ChavePix (val tipoChave: TipoChave,
@@ -13,7 +13,7 @@ class ChavePix (val tipoChave: TipoChave,
 
 
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue
     val id: Long = 0
 
 }
