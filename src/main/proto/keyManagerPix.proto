@@ -21,7 +21,8 @@ message KeyManagerPixRequest {
 }
 //
 message KeyManagerPixReply {
-    string valChave = 1;
+    string idPix = 1;
+    string valChave = 2;
 }
 
 enum TipoChave {

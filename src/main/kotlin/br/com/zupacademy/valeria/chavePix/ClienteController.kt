@@ -5,6 +5,7 @@ import br.com.zupacademy.valeria.KeyManagerPixRequest
 import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc
 import br.com.zupacademy.valeria.handle.ErrorHandler
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
+import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoException
 import br.com.zupacademy.valeria.handle.handles.ChavePixExistenteExceptionHandler
 import com.google.rpc.StatusProto
 import io.grpc.Status
@@ -31,7 +32,11 @@ class ClienteController (@Inject val clienteRepository: ClienteRepository,
             clienteId = clienteResponse.titular.id,
             tipo = clienteResponse.tipo
         )
-        clienteRepository.findAll().map { println(it.toString()) }
+
+        if (chavePix.valChave.length > 77){
+            throw ChavePixMaiorQueOPermitidoException("A chave informada tem um numero maior de caracteres que o esperado")
+            return
+        }
 
         if (clienteRepository.findByValChave(request.valChave).isPresent){
 
@@ -41,7 +46,7 @@ class ClienteController (@Inject val clienteRepository: ClienteRepository,
 
         clienteRepository.save(chavePix)
 
-        val response = KeyManagerPixReply.newBuilder().setValChave(chavePix.id.toString()).build()
+        val response = KeyManagerPixReply.newBuilder().setIdPix(chavePix.id.toString()).setValChave(chavePix.valChave.toString()).build()
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
