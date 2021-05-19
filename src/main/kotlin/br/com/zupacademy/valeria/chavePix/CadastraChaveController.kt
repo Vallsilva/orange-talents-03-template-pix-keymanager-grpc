@@ -6,18 +6,14 @@ import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc
 import br.com.zupacademy.valeria.handle.ErrorHandler
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
 import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoException
-import br.com.zupacademy.valeria.handle.handles.ChavePixExistenteExceptionHandler
-import com.google.rpc.StatusProto
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import jdk.net.SocketFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @ErrorHandler
 @Singleton
-class ClienteController (@Inject val clienteRepository: ClienteRepository,
-                         @Inject val clienteConsulta: ConsultaClient) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
+class CadastraChaveController (@Inject val clienteRepository: ChavePixRepository,
+                               @Inject val clienteConsulta: ConsultaErpItau) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
 
     override fun cadastrarChavePix(
         request: KeyManagerPixRequest,

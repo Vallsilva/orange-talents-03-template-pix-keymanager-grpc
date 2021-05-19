@@ -5,7 +5,7 @@ import io.micronaut.data.jpa.repository.JpaRepository
 import java.util.*
 
 @Repository
-interface ClienteRepository : JpaRepository<ChavePix, Long> {
+interface ChavePixRepository : JpaRepository<ChavePix, Long> {
 
     fun findByValChave(valChavePix: String): Optional<ChavePix>
 }

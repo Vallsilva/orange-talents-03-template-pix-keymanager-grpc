@@ -12,6 +12,10 @@ service KeyManagerPixService {
   rpc cadastrarChavePix (KeyManagerPixRequest) returns (KeyManagerPixReply) {}
 }
 
+service KeyManagerPixRemove{
+    rpc apagaChavePix (KeyRemoveRequest) returns (KeyRemoveReply) {}
+}
+
 //message = as classes que eu preciso para manipular. É ideial que essas messages sejam coerentes com as classes em kotlin
 message KeyManagerPixRequest {
     string clienteId = 1;
@@ -37,4 +41,14 @@ enum TipoConta {
     TIPO_CONTA_DESCONHECIDO = 0;
     CONTA_CORRENTE = 1;
     CONTA_POUPANCA = 2;
+}
+
+message KeyRemoveRequest{
+    string pixId = 1;
+    string clienteId = 2;
+}
+
+message KeyRemoveReply{
+    string pixId = 1;
+    string clienteId = 2;
 }

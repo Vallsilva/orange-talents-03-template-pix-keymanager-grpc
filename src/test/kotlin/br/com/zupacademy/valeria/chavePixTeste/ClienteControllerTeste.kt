@@ -5,11 +5,10 @@ import br.com.zupacademy.valeria.KeyManagerPixRequest
 import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc
 import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc.*
 import br.com.zupacademy.valeria.TipoChave
-import br.com.zupacademy.valeria.TipoConta
 import br.com.zupacademy.valeria.TipoConta.*
 import br.com.zupacademy.valeria.chavePix.ChavePix
-import br.com.zupacademy.valeria.chavePix.ClienteRepository
-import br.com.zupacademy.valeria.chavePix.ConsultaClient
+import br.com.zupacademy.valeria.chavePix.ChavePixRepository
+import br.com.zupacademy.valeria.chavePix.ConsultaErpItau
 import br.com.zupacademy.valeria.chavePix.TipoChave.CPF
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -25,7 +24,11 @@ import org.junit.jupiter.api.assertThrows
 import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
-class ClienteControllerTeste(val grpcClient: KeyManagerPixServiceBlockingStub, val clienteRepository: ClienteRepository, val client: ConsultaClient) {
+class ClienteControllerTeste(
+    val grpcClient: KeyManagerPixServiceBlockingStub,
+    val clienteRepository: ChavePixRepository,
+    val client: ConsultaErpItau
+) {
 
     @Test
     fun `deveSalvarChavePixCpf` () {
@@ -152,7 +155,27 @@ class ClienteControllerTeste(val grpcClient: KeyManagerPixServiceBlockingStub, v
             assertEquals(clienteResponse.titular.cpf, "02467781054")
         }
     }
+    //fazer o caminho inverso dos testes que ja tem
+    //Fazer teste com campos vazios ou null
+    //Fazer teste passando um celular e o tipoChave CPF
+    @Test
+    fun `naoDeveSalvarChavePixCpfInvalido`(){
+        clienteRepository.deleteAll()
 
+        //Criar o que o sistema cria
+        val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
+            .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setTipoChave(TipoChave.CPF)
+            .setValChave("042677810544")
+            .setTipo(CONTA_CORRENTE)
+            .build())
+
+        //Validar se deu certo
+        with(response){
+            assertNotNull(idPix)
+            assertTrue(clienteRepository.existsById(idPix.toLong()))
+        }
+    }
 
     @Factory
     class Clients{
