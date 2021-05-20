@@ -27,7 +27,7 @@ import javax.inject.Singleton
 
 
 @MicronautTest(transactional = false)
-class ClienteControllerTeste(
+class CadastraChaveControllerTest(
     val grpcClient: KeyManagerPixServiceBlockingStub,
     val clienteRepository: ChavePixRepository,
     val client: ConsultaErpItau
@@ -115,7 +115,7 @@ class ClienteControllerTeste(
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.RANDOM)
-            .setValChave("97319984871281084837961388037931197767916374352790375915734643334383225136537")
+            .setValChave("De1IA)5TFTDEG;J*mn_N;2nf}:7@ggiC8Tuls5gI!TKgbnw]C?Tabb6sP04=fxvxeuDU?]*H2T=sx")
             .setTipo(CONTA_CORRENTE)
             .build())
 
@@ -141,7 +141,7 @@ class ClienteControllerTeste(
 
         with(erro){
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            assertEquals("A chave informada tem um numero maior de caracteres que o esperado", status.description)
+            assertEquals("Formato de chave Pix inválido!", status.description)
         }
     }
 
@@ -150,7 +150,7 @@ class ClienteControllerTeste(
         val clienteResponse = client.consulta("c56dfef4-7901-44fb-84e2-a2cefb157890", "CONTA_CORRENTE")
 
         with(clienteResponse){
-            assertEquals(clienteResponse.titular.cpf, "02467781054")
+            assertEquals(clienteResponse!!.titular.cpf, "02467781054")
         }
     }
 
@@ -190,8 +190,8 @@ class ClienteControllerTeste(
         }
 
         with(response){
-            assertEquals(Status.INVALID_ARGUMENT.code, status.code )
-            assertEquals("Formato de chave Pix inválido!", status.description)
+            assertEquals(Status.INTERNAL.code, status.code )
+            assertEquals("Problema na comunicacao", status.description)
         }
     }
 

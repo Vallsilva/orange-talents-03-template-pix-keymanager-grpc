@@ -1,25 +1,26 @@
 package br.com.zupacademy.valeria.chavePix
 
-import br.com.zupacademy.valeria.KeyManagerPixReply
-import br.com.zupacademy.valeria.KeyManagerPixRequest
-import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc
+import br.com.zupacademy.valeria.*
 import br.com.zupacademy.valeria.handle.ErrorHandler
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
-import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoException
+import br.com.zupacademy.valeria.handle.exception.ChavePixNaoEncontradaException
+import br.com.zupacademy.valeria.handle.exception.ChavePixOutroDonoException
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.transaction.Transactional
 import javax.validation.ConstraintViolationException
 import javax.validation.Validator
 
 @ErrorHandler
 @Singleton
-class CadastraChaveController(
-    @Inject val clienteRepository: ChavePixRepository,
+class ChavePixController(
+    @Inject val chavePixRepository: ChavePixRepository,
     @Inject val clienteConsulta: ConsultaErpItau,
     @Inject val validator: Validator
 ) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
 
+    @Transactional
     override fun cadastrarChavePix(
         request: KeyManagerPixRequest,
         responseObserver: StreamObserver<KeyManagerPixReply>
@@ -27,13 +28,11 @@ class CadastraChaveController(
         if (request.clienteId.isNullOrBlank()){
             throw IllegalStateException("Deu muito ruim!")
         }
-
         val clienteResponse = clienteConsulta.consulta(request.clienteId, request.tipo.name)
 
         if (clienteResponse == null){
             throw IllegalStateException("Deu mais ruim ainda!")
         }
-
         val chavePix = ChavePix(
             tipoChave = TipoChave.valueOf(request.tipoChave.toString()),
             valChave = request.valChave,
@@ -41,31 +40,48 @@ class CadastraChaveController(
             clienteId = clienteResponse.titular.id,
             tipo = clienteResponse.tipo
         )
-
         val chaveValida = validator.validate(chavePix)
-        println(chaveValida)
+
         if (chaveValida.isNotEmpty()){
             throw ConstraintViolationException(chaveValida)
         }
 
-        if (chavePix.valChave.length > 77){
-
-            throw ChavePixMaiorQueOPermitidoException("A chave informada tem um numero maior de caracteres que o esperado")
-            return
-        }
-
-        if (clienteRepository.findByValChave(request.valChave).isPresent){
+        if (chavePixRepository.findByValChave(request.valChave).isPresent){
 
             throw ChavePixExistenteException("Chave Pix ja cadastrada caralho!")
             return
         }
-
-        clienteRepository.save(chavePix)
+        chavePixRepository.save(chavePix)
 
         val response = KeyManagerPixReply.newBuilder().setIdPix(chavePix.id.toString()).setValChave(chavePix.valChave.toString()).build()
-
         responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
+
+    @Transactional
+    override fun apagaChavePix(
+        request: KeyRemoveRequest,
+        responseObserver: StreamObserver<KeyRemoveReply>
+    ) {
+
+        if (!chavePixRepository.existsById(request.pixId.toLong())){
+
+            throw ChavePixNaoEncontradaException("A chave informada não foi encontrada na base de dados!")
+            return
+        }
+
+        if (chavePixRepository.findByIdAndClienteId(request.pixId.toLong(), request.clienteId).isEmpty){
+
+            throw ChavePixOutroDonoException("A chave pix não pode ser excluida por outro usuário que não seja seu dono!")
+            return
+        }
+        chavePixRepository.deleteById(request.pixId.toLong())
+        val response =  KeyRemoveReply.newBuilder().setClienteId(request.clienteId).build()
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+        return
+    }
+
 
 }

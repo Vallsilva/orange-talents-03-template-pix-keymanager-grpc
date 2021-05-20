@@ -9,13 +9,12 @@ package br.com.zupacademy.valeria;
 
 //Metodo onde eu vou definir meus endpoints
 service KeyManagerPixService {
+
   rpc cadastrarChavePix (KeyManagerPixRequest) returns (KeyManagerPixReply) {}
-}
 
-service KeyManagerPixRemove{
-    rpc apagaChavePix (KeyRemoveRequest) returns (KeyRemoveReply) {}
-}
+  rpc apagaChavePix (KeyRemoveRequest) returns (KeyRemoveReply) {}
 
+}
 
 message KeyManagerPixRequest {
     string clienteId = 1;
