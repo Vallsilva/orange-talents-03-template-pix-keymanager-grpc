@@ -10,6 +10,8 @@ import br.com.zupacademy.valeria.chavePix.ChavePix
 import br.com.zupacademy.valeria.chavePix.ChavePixRepository
 import br.com.zupacademy.valeria.chavePix.ConsultaErpItau
 import br.com.zupacademy.valeria.chavePix.TipoChave.CPF
+import com.google.rpc.Code
+import com.google.rpc.Code.INVALID_ARGUMENT_VALUE
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 import javax.inject.Singleton
+
 
 @MicronautTest(transactional = false)
 class ClienteControllerTeste(
@@ -150,25 +153,48 @@ class ClienteControllerTeste(
             assertEquals(clienteResponse.titular.cpf, "02467781054")
         }
     }
-    //fazer o caminho inverso dos testes que ja tem
+
     //Fazer teste com campos vazios ou null
     //Fazer teste passando um celular e o tipoChave CPF
     @Test
     fun `naoDeveSalvarChavePixCpfInvalido`(){
         clienteRepository.deleteAll()
 
-        val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
-            .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoChave(TipoChave.CPF)
-            .setValChave("042677810544")
-            .setTipo(CONTA_CORRENTE)
-            .build())
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
+                .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                .setTipoChave(TipoChave.CPF)
+                .setValChave("042677810544")
+                .setTipo(CONTA_CORRENTE)
+                .build())
+        }
 
         with(response){
-            assertNotNull(idPix)
-            assertTrue(clienteRepository.existsById(idPix.toLong()))
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code )
+            assertEquals("Formato de chave Pix inválido!", status.description)
+
         }
     }
+
+    @Test
+    fun `naoDeveSalvarChavePixComCampoNullOuVazio`(){
+        clienteRepository.deleteAll()
+
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
+                .setClienteId("kaidjahjfha")
+                .setTipoChave(TipoChave.CPF)
+                .setValChave("14523698745")
+                .setTipo(CONTA_CORRENTE)
+                .build())
+        }
+
+        with(response){
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code )
+            assertEquals("Formato de chave Pix inválido!", status.description)
+        }
+    }
+
 
     @Factory
     class Clients{

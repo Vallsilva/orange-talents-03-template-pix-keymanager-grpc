@@ -9,17 +9,30 @@ import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoExce
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.validation.ConstraintViolationException
+import javax.validation.Validator
 
 @ErrorHandler
 @Singleton
-class CadastraChaveController (@Inject val clienteRepository: ChavePixRepository,
-                               @Inject val clienteConsulta: ConsultaErpItau) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
+class CadastraChaveController(
+    @Inject val clienteRepository: ChavePixRepository,
+    @Inject val clienteConsulta: ConsultaErpItau,
+    @Inject val validator: Validator
+) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
 
     override fun cadastrarChavePix(
         request: KeyManagerPixRequest,
         responseObserver: StreamObserver<KeyManagerPixReply>
     ) {
+        if (request.clienteId.isNullOrBlank()){
+            throw IllegalStateException("Deu muito ruim!")
+        }
+
         val clienteResponse = clienteConsulta.consulta(request.clienteId, request.tipo.name)
+
+        if (clienteResponse == null){
+            throw IllegalStateException("Deu mais ruim ainda!")
+        }
 
         val chavePix = ChavePix(
             tipoChave = TipoChave.valueOf(request.tipoChave.toString()),
@@ -28,6 +41,12 @@ class CadastraChaveController (@Inject val clienteRepository: ChavePixRepository
             clienteId = clienteResponse.titular.id,
             tipo = clienteResponse.tipo
         )
+
+        val chaveValida = validator.validate(chavePix)
+        println(chaveValida)
+        if (chaveValida.isNotEmpty()){
+            throw ConstraintViolationException(chaveValida)
+        }
 
         if (chavePix.valChave.length > 77){
 

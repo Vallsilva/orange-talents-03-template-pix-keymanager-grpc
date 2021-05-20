@@ -16,14 +16,14 @@ service KeyManagerPixRemove{
     rpc apagaChavePix (KeyRemoveRequest) returns (KeyRemoveReply) {}
 }
 
-//message = as classes que eu preciso para manipular. É ideial que essas messages sejam coerentes com as classes em kotlin
+
 message KeyManagerPixRequest {
     string clienteId = 1;
     TipoChave tipoChave = 2;
     string valChave = 3;
     TipoConta tipo = 4;
 }
-//
+
 message KeyManagerPixReply {
     string idPix = 1;
     string valChave = 2;

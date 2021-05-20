@@ -4,7 +4,7 @@ import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
-//Criar uma validação para o tipo de chave usando a chave recebida
+
 @Entity
 @ValidadorChavePix
 class ChavePix (@field:NotNull val tipoChave: TipoChave,
