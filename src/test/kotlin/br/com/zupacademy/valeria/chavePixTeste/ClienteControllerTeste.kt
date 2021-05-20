@@ -32,10 +32,9 @@ class ClienteControllerTeste(
 
     @Test
     fun `deveSalvarChavePixCpf` () {
-        //Limpeza do banco para preparar o ambiente
+
         clienteRepository.deleteAll()
 
-        //Criar o que o sistema cria
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.CPF)
@@ -43,7 +42,6 @@ class ClienteControllerTeste(
             .setTipo(CONTA_CORRENTE)
             .build())
 
-        //Validar se deu certo
         with(response){
             assertNotNull(idPix)
             assertTrue(clienteRepository.existsById(idPix.toLong()))
@@ -52,9 +50,9 @@ class ClienteControllerTeste(
 
     @Test
     fun `naoDeveSalvarChaveJaExistente`(){
+
         clienteRepository.save(ChavePix(CPF, "02467781054", "02467781054", "c56dfef4-7901-44fb-84e2-a2cefb157890", CONTA_CORRENTE.toString()))
 
-        //Criar o que o sistema cria
         val erro = assertThrows<StatusRuntimeException> {
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -75,7 +73,6 @@ class ClienteControllerTeste(
 
         clienteRepository.deleteAll()
 
-        //Criar o que o sistema cria
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.EMAIL)
@@ -94,11 +91,10 @@ class ClienteControllerTeste(
 
         clienteRepository.deleteAll()
 
-        //Criar o que o sistema cria
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.CELULAR)
-            .setValChave("5531985874523")
+            .setValChave("+5531985874523")
             .setTipo(CONTA_CORRENTE)
             .build())
 
@@ -131,7 +127,6 @@ class ClienteControllerTeste(
 
         clienteRepository.deleteAll()
 
-        //Criar o que o sistema cria
         val erro = assertThrows<StatusRuntimeException>{
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
                 .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -162,7 +157,6 @@ class ClienteControllerTeste(
     fun `naoDeveSalvarChavePixCpfInvalido`(){
         clienteRepository.deleteAll()
 
-        //Criar o que o sistema cria
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.CPF)
@@ -170,7 +164,6 @@ class ClienteControllerTeste(
             .setTipo(CONTA_CORRENTE)
             .build())
 
-        //Validar se deu certo
         with(response){
             assertNotNull(idPix)
             assertTrue(clienteRepository.existsById(idPix.toLong()))

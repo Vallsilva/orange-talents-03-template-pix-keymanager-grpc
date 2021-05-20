@@ -30,6 +30,7 @@ class CadastraChaveController (@Inject val clienteRepository: ChavePixRepository
         )
 
         if (chavePix.valChave.length > 77){
+
             throw ChavePixMaiorQueOPermitidoException("A chave informada tem um numero maior de caracteres que o esperado")
             return
         }
