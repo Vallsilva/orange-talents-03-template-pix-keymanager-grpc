@@ -4,6 +4,7 @@ package br.com.zupacademy.valeria.chavePixTeste
 import br.com.zupacademy.valeria.KeyManagerPixRequest
 import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc
 import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc.*
+import br.com.zupacademy.valeria.KeyRemoveRequest
 import br.com.zupacademy.valeria.TipoChave
 import br.com.zupacademy.valeria.TipoConta.*
 import br.com.zupacademy.valeria.chavePix.ChavePix
@@ -34,7 +35,7 @@ class CadastraChaveControllerTest(
 ) {
 
     @Test
-    fun `deveSalvarChavePixCpf` () {
+    fun `deve Salvar Chave Pix Cpf` () {
 
         clienteRepository.deleteAll()
 
@@ -154,8 +155,6 @@ class CadastraChaveControllerTest(
         }
     }
 
-    //Fazer teste com campos vazios ou null
-    //Fazer teste passando um celular e o tipoChave CPF
     @Test
     fun `naoDeveSalvarChavePixCpfInvalido`(){
         clienteRepository.deleteAll()
@@ -195,6 +194,42 @@ class CadastraChaveControllerTest(
         }
     }
 
+    @Test
+    fun `nao deve salvar uma chave com tipo cpf e a chave em formato de email`(){
+
+        clienteRepository.deleteAll()
+
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
+                .setClienteId("5260263c-a3c1-4727-ae32-3bdb2538841b")
+                .setTipoChave(TipoChave.CPF)
+                .setValChave("valeria@mail.com")
+                .setTipo(CONTA_CORRENTE)
+                .build())
+        }
+
+        with(response){
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code )
+            assertEquals("Formato de chave Pix inválido!", status.description)
+        }
+    }
+
+//    @Test
+//    fun `nao deve excluir uma chave pix pertencente a outro clienteId`(){
+//        val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
+//            .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+//            .setTipoChave(TipoChave.CELULAR)
+//            .setValChave("+5531985874523")
+//            .setTipo(CONTA_CORRENTE)
+//            .build())
+//
+//        assertThrows<StatusRuntimeException> {grpcClient.apagaChavePix(KeyRemoveRequest.newBuilder(clienteRepository.findByIdAndClienteId(response.idPix.toLong(), "5260263c-a3c1-4727-ae32-3bdb2538841b")).build()}
+//        }
+//        assertEquals(Status.FAILED_PRECONDITION.code, )
+//        assertEquals("A chave pix não pode ser excluida por outro usuário que não seja seu dono!", )
+//
+//
+//    }
 
     @Factory
     class Clients{
