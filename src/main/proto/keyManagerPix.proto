@@ -24,7 +24,7 @@ message KeyManagerPixRequest {
 }
 
 message KeyManagerPixReply {
-    string idPix = 1;
+    int64 idPix = 1;
     string valChave = 2;
 }
 

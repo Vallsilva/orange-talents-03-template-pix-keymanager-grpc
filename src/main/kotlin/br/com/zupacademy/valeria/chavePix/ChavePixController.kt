@@ -3,6 +3,7 @@ package br.com.zupacademy.valeria.chavePix
 import br.com.zupacademy.valeria.*
 import br.com.zupacademy.valeria.handle.ErrorHandler
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
+import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoException
 import br.com.zupacademy.valeria.handle.exception.ChavePixNaoEncontradaException
 import br.com.zupacademy.valeria.handle.exception.ChavePixOutroDonoException
 import io.grpc.stub.StreamObserver
@@ -17,14 +18,21 @@ import javax.validation.Validator
 class ChavePixController(
     @Inject val chavePixRepository: ChavePixRepository,
     @Inject val clienteConsulta: ConsultaErpItau,
-    @Inject val validator: Validator
+    @Inject val validator: Validator,
+    @Inject val clientBCB: CadastraChavePixBCB
 ) : KeyManagerPixServiceGrpc.KeyManagerPixServiceImplBase(){
 
-    @Transactional
+
     override fun cadastrarChavePix(
         request: KeyManagerPixRequest,
         responseObserver: StreamObserver<KeyManagerPixReply>
     ) {
+        val convertedKeyType = request.getConvertedKeyType()
+
+        if(!convertedKeyType.isValid(request.valChave)) {
+            throw ChavePixMaiorQueOPermitidoException("O valor da chave não é compativel com o esperado")
+        }
+
         if (request.clienteId.isNullOrBlank()){
             throw IllegalStateException("Deu muito ruim!")
         }
@@ -33,18 +41,14 @@ class ChavePixController(
         if (clienteResponse == null){
             throw IllegalStateException("Deu mais ruim ainda!")
         }
+
         val chavePix = ChavePix(
             tipoChave = TipoChave.valueOf(request.tipoChave.toString()),
-            valChave = request.valChave,
+            valChave = GerarChavePix.gera(TipoChave.valueOf(request.tipoChave.toString()), request.valChave),
             cpf = clienteResponse.titular.cpf,
             clienteId = clienteResponse.titular.id,
             tipo = clienteResponse.tipo
         )
-        val chaveValida = validator.validate(chavePix)
-
-        if (chaveValida.isNotEmpty()){
-            throw ConstraintViolationException(chaveValida)
-        }
 
         if (chavePixRepository.findByValChave(request.valChave).isPresent){
 
@@ -53,7 +57,9 @@ class ChavePixController(
         }
         chavePixRepository.save(chavePix)
 
-        val response = KeyManagerPixReply.newBuilder().setIdPix(chavePix.id.toString()).setValChave(chavePix.valChave.toString()).build()
+       // val chavePixBCBResponse = clientBCB.cadastra(ChavePixBBCRequest(chavePix.tipoChave, chavePix.valChave, BankAccount(clienteResponse), Owner(clienteResponse)))
+
+        val response = KeyManagerPixReply.newBuilder().setIdPix(chavePix.id!!).setValChave(chavePix.valChave).build()
         responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
@@ -83,5 +89,7 @@ class ChavePixController(
         return
     }
 
-
+    private fun KeyManagerPixRequest.getConvertedKeyType() : TipoChave {
+        return TipoChave.valueOf(this.tipoChave.toString())
+    }
 }

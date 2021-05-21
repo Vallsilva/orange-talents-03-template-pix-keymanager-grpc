@@ -1,22 +1,18 @@
 package br.com.zupacademy.valeria.chavePix
 
-import javax.persistence.*
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
 
 
 @Entity
-@ValidadorChavePix
-class ChavePix (@field:NotNull val tipoChave: TipoChave,
-                @field:NotBlank val valChave: String,
-                @field:NotBlank val cpf: String,
-                @field:NotBlank val clienteId: String,
-                @field:NotBlank val tipo: String)
+class ChavePix (val tipoChave: TipoChave,
+                val valChave: String,
+                val cpf: String,
+                val clienteId: String,
+                val tipo: String)
 {
-
-
-
     @Id @GeneratedValue
-    val id: Long = 0
-
+    val id: Long? = null
 }
+

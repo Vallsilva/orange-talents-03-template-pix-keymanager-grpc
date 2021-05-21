@@ -30,14 +30,14 @@ import javax.inject.Singleton
 @MicronautTest(transactional = false)
 class CadastraChaveControllerTest(
     val grpcClient: KeyManagerPixServiceBlockingStub,
-    val clienteRepository: ChavePixRepository,
+    val chavePixRepository: ChavePixRepository,
     val client: ConsultaErpItau
 ) {
 
     @Test
     fun `deve Salvar Chave Pix Cpf` () {
 
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -48,14 +48,14 @@ class CadastraChaveControllerTest(
 
         with(response){
             assertNotNull(idPix)
-            assertTrue(clienteRepository.existsById(idPix.toLong()))
+            assertTrue(chavePixRepository.findById(idPix).isPresent)
         }
     }
 
     @Test
     fun `naoDeveSalvarChaveJaExistente`(){
 
-        clienteRepository.save(ChavePix(CPF, "02467781054", "02467781054", "c56dfef4-7901-44fb-84e2-a2cefb157890", CONTA_CORRENTE.toString()))
+        chavePixRepository.save(ChavePix(CPF, "02467781054", "02467781054", "c56dfef4-7901-44fb-84e2-a2cefb157890", CONTA_CORRENTE.toString()))
 
         val erro = assertThrows<StatusRuntimeException> {
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
@@ -75,7 +75,7 @@ class CadastraChaveControllerTest(
     @Test
     fun `deveSalvarChavePixEmail`(){
 
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -86,14 +86,14 @@ class CadastraChaveControllerTest(
 
         with(response){
             assertNotNull(idPix)
-            assertTrue(clienteRepository.existsById(idPix.toLong()))
+            assertTrue(chavePixRepository.existsById(idPix.toLong()))
         }
     }
 
     @Test
     fun `deveSalvarChavePixCelular`(){
 
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
@@ -104,32 +104,32 @@ class CadastraChaveControllerTest(
 
         with(response){
             assertNotNull(idPix)
-            assertTrue(clienteRepository.existsById(idPix.toLong()))
+            assertTrue(chavePixRepository.existsById(idPix.toLong()))
         }
     }
 
     @Test
     fun `deveSalvarChavePixRandom`(){
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         //Criar o que o sistema cria
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
             .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
             .setTipoChave(TipoChave.RANDOM)
-            .setValChave("De1IA)5TFTDEG;J*mn_N;2nf}:7@ggiC8Tuls5gI!TKgbnw]C?Tabb6sP04=fxvxeuDU?]*H2T=sx")
+            .setValChave("")
             .setTipo(CONTA_CORRENTE)
             .build())
 
         with(response){
             assertNotNull(idPix)
-            assertTrue(clienteRepository.existsById(idPix.toLong()))
+            assertTrue(chavePixRepository.existsById(idPix.toLong()))
         }
     }
 
     @Test
     fun `naoDeveSalvarChavePixRandomMaiorQue77Chars`(){
 
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val erro = assertThrows<StatusRuntimeException>{
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
@@ -157,7 +157,7 @@ class CadastraChaveControllerTest(
 
     @Test
     fun `naoDeveSalvarChavePixCpfInvalido`(){
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
@@ -177,7 +177,7 @@ class CadastraChaveControllerTest(
 
     @Test
     fun `naoDeveSalvarChavePixComCampoNullOuVazio`(){
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
@@ -197,7 +197,7 @@ class CadastraChaveControllerTest(
     @Test
     fun `nao deve salvar uma chave com tipo cpf e a chave em formato de email`(){
 
-        clienteRepository.deleteAll()
+        chavePixRepository.deleteAll()
 
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
