@@ -9,10 +9,8 @@ import br.com.zupacademy.valeria.TipoChave
 import br.com.zupacademy.valeria.TipoConta.*
 import br.com.zupacademy.valeria.chavePix.ChavePix
 import br.com.zupacademy.valeria.chavePix.ChavePixRepository
-import br.com.zupacademy.valeria.chavePix.ConsultaErpItau
+import br.com.zupacademy.valeria.chavePix.consultaExterna.ConsultaErpItau
 import br.com.zupacademy.valeria.chavePix.TipoChave.CPF
-import com.google.rpc.Code
-import com.google.rpc.Code.INVALID_ARGUMENT_VALUE
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -104,7 +102,7 @@ class CadastraChaveControllerTest(
 
         with(response){
             assertNotNull(idPix)
-            assertTrue(chavePixRepository.existsById(idPix.toLong()))
+            assertTrue(chavePixRepository.existsById(idPix))
         }
     }
 
@@ -214,28 +212,91 @@ class CadastraChaveControllerTest(
         }
     }
 
-//    @Test
-//    fun `nao deve excluir uma chave pix pertencente a outro clienteId`(){
-//        val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
-//            .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-//            .setTipoChave(TipoChave.CELULAR)
-//            .setValChave("+5531985874523")
-//            .setTipo(CONTA_CORRENTE)
-//            .build())
-//
-//        assertThrows<StatusRuntimeException> {grpcClient.apagaChavePix(KeyRemoveRequest.newBuilder(clienteRepository.findByIdAndClienteId(response.idPix.toLong(), "5260263c-a3c1-4727-ae32-3bdb2538841b")).build()}
-//        }
-//        assertEquals(Status.FAILED_PRECONDITION.code, )
-//        assertEquals("A chave pix não pode ser excluida por outro usuário que não seja seu dono!", )
-//
-//
-//    }
+    @Test
+    fun `deve excluir uma chave pix cadastrada anteriormente`(){
+
+        val savedKey = chavePixRepository.save(
+            ChavePix(
+                CPF,
+                "02467781054",
+                "02467781054",
+                "c56dfef4-7901-44fb-84e2-a2cefb157890",
+                CONTA_CORRENTE.toString()
+            )
+        )
+        val response = grpcClient.apagaChavePix(
+            KeyRemoveRequest.newBuilder()
+                .setPixId(savedKey.id.toString())
+                .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                .build())
+
+        with(response){
+            assertFalse(chavePixRepository.existsById(savedKey.id!!))
+            assertEquals(savedKey.clienteId, response.clienteId)
+        }
+
+    }
+
+    @Test
+    fun `nao deve exluir uma chave pix se o clientId for diferente do cadastrado`(){
+        val savedKey = chavePixRepository.save(
+            ChavePix(
+                CPF,
+                "02467781054",
+                "02467781054",
+                "c56dfef4-7901-44fb-84e2-a2cefb157890",
+                CONTA_CORRENTE.toString()
+            )
+        )
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.apagaChavePix(
+                KeyRemoveRequest.newBuilder()
+                    .setPixId(savedKey.id.toString())
+                    .setClienteId("5260263c-a3c1-4727-ae32-3bdb2538841b")
+                    .build())
+        }
+
+        with(response){
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code )
+            assertEquals("A chave pix não pode ser excluida por outro usuário que não seja seu dono!", status.description)
+        }
+    }
+
+    @Test
+    fun `retorno exception com erro informando que a chave não foi localizada`(){
+
+        val savedKey = chavePixRepository.save(
+            ChavePix(
+                CPF,
+                "02467781054",
+                "02467781054",
+                "c56dfef4-7901-44fb-84e2-a2cefb157890",
+                CONTA_CORRENTE.toString()
+            )
+        )
+        val response = assertThrows<StatusRuntimeException> {
+
+            grpcClient.apagaChavePix(
+                KeyRemoveRequest.newBuilder()
+                    .setPixId("5")
+                    .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+                    .build())
+        }
+
+        with(response){
+            assertEquals(Status.NOT_FOUND.code, status.code)
+            assertEquals("A chave informada não foi encontrada na base de dados!", status.description)
+        }
+    }
+
 
     @Factory
     class Clients{
         @Singleton
         fun blokckingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel) : KeyManagerPixServiceBlockingStub?{
+
             return KeyManagerPixServiceGrpc.newBlockingStub(channel)
+
         }
     }
 }

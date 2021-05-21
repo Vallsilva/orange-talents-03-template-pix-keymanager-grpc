@@ -1,5 +1,7 @@
-package br.com.zupacademy.valeria.chavePix
+package br.com.zupacademy.valeria.chavePix.consultaExterna
 
+import br.com.zupacademy.valeria.chavePix.ChavePixBBCRequest
+import br.com.zupacademy.valeria.chavePix.ChavePixBCBResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Consumes

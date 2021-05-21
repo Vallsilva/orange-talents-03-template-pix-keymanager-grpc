@@ -1,5 +1,6 @@
-package br.com.zupacademy.valeria.chavePix
+package br.com.zupacademy.valeria.chavePix.consultaExterna
 
+import br.com.zupacademy.valeria.chavePix.ClienteResponse
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue

@@ -1,16 +1,16 @@
 package br.com.zupacademy.valeria.chavePix
 
 import br.com.zupacademy.valeria.*
+import br.com.zupacademy.valeria.chavePix.consultaExterna.CadastraChavePixBCB
+import br.com.zupacademy.valeria.chavePix.consultaExterna.ConsultaErpItau
 import br.com.zupacademy.valeria.handle.ErrorHandler
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
-import br.com.zupacademy.valeria.handle.exception.ChavePixMaiorQueOPermitidoException
+import br.com.zupacademy.valeria.handle.exception.ChavePixInvalidaException
 import br.com.zupacademy.valeria.handle.exception.ChavePixNaoEncontradaException
 import br.com.zupacademy.valeria.handle.exception.ChavePixOutroDonoException
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.transaction.Transactional
-import javax.validation.ConstraintViolationException
 import javax.validation.Validator
 
 @ErrorHandler
@@ -30,7 +30,7 @@ class ChavePixController(
         val convertedKeyType = request.getConvertedKeyType()
 
         if(!convertedKeyType.isValid(request.valChave)) {
-            throw ChavePixMaiorQueOPermitidoException("O valor da chave não é compativel com o esperado")
+            throw ChavePixInvalidaException("O valor da chave não é compativel com o esperado")
         }
 
         if (request.clienteId.isNullOrBlank()){
@@ -64,7 +64,7 @@ class ChavePixController(
         responseObserver.onCompleted()
     }
 
-    @Transactional
+
     override fun apagaChavePix(
         request: KeyRemoveRequest,
         responseObserver: StreamObserver<KeyRemoveReply>
