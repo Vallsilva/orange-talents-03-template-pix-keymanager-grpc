@@ -16,7 +16,7 @@ class ChavePixBCBResponse(
     val key: String,
     val bankAccount: BankAccount,
     val owner: Owner,
-    val createdAt: LocalDateTime
+    val createdAt: String
 ) {
 }
 
@@ -44,4 +44,18 @@ class Owner(
         clienteResponse.titular.nome,
         clienteResponse.titular.cpf
     )
+}
+
+class DeletePixKeyRequest(
+    val key: String,
+    val participant: String
+) {
+}
+
+class DeletePixKeyResponse(
+    val key: String,
+    val participant: String,
+    val deletedAt: LocalDateTime
+){
+
 }

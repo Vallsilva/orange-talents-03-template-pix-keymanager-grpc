@@ -7,7 +7,7 @@ import javax.persistence.Id
 
 @Entity
 class ChavePix (val tipoChave: TipoChave,
-                val valChave: String,
+                var valChave: String,
                 val cpf: String,
                 val clienteId: String,
                 val tipo: String)

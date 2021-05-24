@@ -10,4 +10,5 @@ interface ChavePixRepository : JpaRepository<ChavePix, Long> {
     fun findByValChave(valChavePix: String): Optional<ChavePix>
 
     fun findByIdAndClienteId(id: Long, clienteId: String) : Optional<ChavePix>
+
 }
