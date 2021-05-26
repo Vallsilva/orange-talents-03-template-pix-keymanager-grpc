@@ -17,10 +17,12 @@ import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
 
 import javax.inject.Singleton
 
@@ -298,5 +300,10 @@ class CadastraChaveControllerTest(
             return KeyManagerPixServiceGrpc.newBlockingStub(channel)
 
         }
+    }
+
+    @MockBean(ConsultaErpItau::class)
+    fun consultaMock(): ConsultaErpItau{
+        return Mockito.mock(ConsultaErpItau::class.java)
     }
 }
