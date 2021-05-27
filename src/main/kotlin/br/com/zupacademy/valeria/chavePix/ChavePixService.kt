@@ -1,8 +1,11 @@
 package br.com.zupacademy.valeria.chavePix
 
+import br.com.zupacademy.valeria.KeyRemoveRequest
 import br.com.zupacademy.valeria.chavePix.consultaExterna.ComunicacaoChavePixBCB
 import br.com.zupacademy.valeria.chavePix.consultaExterna.ConsultaErpItau
 import br.com.zupacademy.valeria.handle.exception.ChavePixExistenteException
+import br.com.zupacademy.valeria.handle.exception.ChavePixNaoEncontradaException
+import br.com.zupacademy.valeria.handle.exception.ChavePixOutroDonoException
 import io.micronaut.validation.Validated
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,6 +44,25 @@ class ChavePixService (@Inject val chavePixRepository: ChavePixRepository,
         chavePix.valChave = chavePixBCBResponse.key
 
         return chavePixRepository.save(chavePix)
+    }
+
+    fun deleta(request: KeyRemoveRequest) : KeyRemoveRequest{
+
+        if (!chavePixRepository.existsById(request.pixId.toLong())){
+            throw ChavePixNaoEncontradaException("A chave informada não foi encontrada na base de dados!")
+        }
+
+        if (chavePixRepository.findByIdAndClienteId(request.pixId.toLong(), request.clienteId).isEmpty){
+            throw ChavePixOutroDonoException("A chave pix não pode ser excluida por outro usuário que não seja seu dono!")
+        }
+
+        val chavePix = chavePixRepository.findById(request.pixId.toLong()).get()
+
+        val clienteBCBConsulta = clientBCB.consulta(chavePix.valChave)
+        val deletePixKeyResponse = clientBCB.deleta(chavePix.valChave, DeletePixKeyRequest(clienteBCBConsulta!!.key, clienteBCBConsulta.bankAccount.participant))
+
+        chavePixRepository.deleteById(request.pixId.toLong())
+        return request
     }
 
 }

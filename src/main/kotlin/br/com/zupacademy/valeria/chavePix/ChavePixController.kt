@@ -40,27 +40,9 @@ class ChavePixController(
         request: KeyRemoveRequest,
         responseObserver: StreamObserver<KeyRemoveReply>
     ) {
+        val chavePix = chavePixService.deleta(request)
 
-        if (!chavePixRepository.existsById(request.pixId.toLong())){
-
-            throw ChavePixNaoEncontradaException("A chave informada não foi encontrada na base de dados!")
-            return
-        }
-
-        if (chavePixRepository.findByIdAndClienteId(request.pixId.toLong(), request.clienteId).isEmpty){
-
-            throw ChavePixOutroDonoException("A chave pix não pode ser excluida por outro usuário que não seja seu dono!")
-            return
-        }
-
-        val chavePix = chavePixRepository.findById(request.pixId.toLong()).get()
-
-        val clienteBCBConsulta = clientBCB.consulta(chavePix.valChave)
-        val deletePixKeyResponse = clientBCB.deleta(chavePix.valChave, DeletePixKeyRequest(clienteBCBConsulta!!.key, clienteBCBConsulta.bankAccount.participant))
-
-        chavePixRepository.deleteById(request.pixId.toLong())
-
-        val response =  KeyRemoveReply.newBuilder().setClienteId(request.clienteId).build()
+        val response =  KeyRemoveReply.newBuilder().setClienteId(chavePix.clienteId).build()
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
@@ -68,6 +50,8 @@ class ChavePixController(
     }
 
 }
+
+
 
 private fun KeyManagerPixRequest.toModel(): NovaChavePix {
 
