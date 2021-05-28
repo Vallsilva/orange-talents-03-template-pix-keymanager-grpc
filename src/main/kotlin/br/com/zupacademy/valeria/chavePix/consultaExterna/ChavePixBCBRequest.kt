@@ -2,7 +2,7 @@ package br.com.zupacademy.valeria.chavePix
 
 import java.time.LocalDateTime
 
-class ChavePixBBCRequest(
+data class ChavePixBBCRequest(
     val keyType: TipoChave,
     val key: String,
     val bankAccount: BankAccount,
@@ -11,7 +11,7 @@ class ChavePixBBCRequest(
 
 }
 
-class ChavePixBCBResponse(
+data class ChavePixBCBResponse(
     val keyType: String,
     val key: String,
     val bankAccount: BankAccount,
@@ -20,7 +20,7 @@ class ChavePixBCBResponse(
 ) {
 }
 
-class BankAccount(
+data class BankAccount(
     val participant: String,
     val branch: String, //agencia
     val accountNumber: String,
@@ -34,7 +34,7 @@ class BankAccount(
     )
 }
 
-class Owner(
+data class Owner(
     val type: String,
     val name: String,
     val taxIdNumber: String
@@ -46,13 +46,13 @@ class Owner(
     )
 }
 
-class DeletePixKeyRequest(
+data class DeletePixKeyRequest(
     val key: String,
     val participant: String
 ) {
 }
 
-class DeletePixKeyResponse(
+data class DeletePixKeyResponse(
     val key: String,
     val participant: String,
     val deletedAt: LocalDateTime

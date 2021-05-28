@@ -7,10 +7,10 @@ import br.com.zupacademy.valeria.KeyManagerPixServiceGrpc.*
 import br.com.zupacademy.valeria.KeyRemoveRequest
 import br.com.zupacademy.valeria.TipoChave
 import br.com.zupacademy.valeria.TipoConta.*
-import br.com.zupacademy.valeria.chavePix.ChavePix
-import br.com.zupacademy.valeria.chavePix.ChavePixRepository
+import br.com.zupacademy.valeria.chavePix.*
+import br.com.zupacademy.valeria.chavePix.TipoChave.*
 import br.com.zupacademy.valeria.chavePix.consultaExterna.ConsultaErpItau
-import br.com.zupacademy.valeria.chavePix.TipoChave.CPF
+import br.com.zupacademy.valeria.chavePix.consultaExterna.ComunicacaoChavePixBCB
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -22,7 +22,9 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.BDDMockito
 import org.mockito.Mockito
+
 
 import javax.inject.Singleton
 
@@ -31,18 +33,56 @@ import javax.inject.Singleton
 class CadastraChaveControllerTest(
     val grpcClient: KeyManagerPixServiceBlockingStub,
     val chavePixRepository: ChavePixRepository,
-    val client: ConsultaErpItau
+    val client: ConsultaErpItau,
+    val comunicacaoChavePixBCB: ComunicacaoChavePixBCB
 ) {
+
+
 
     @Test
     fun `deve Salvar Chave Pix Cpf` () {
 
         chavePixRepository.deleteAll()
 
+        Mockito.`when`(client.consulta(
+            "ae93a61c-0642-43b3-bb8e-a17072295955",
+            "CONTA_CORRENTE"
+        )).thenReturn(ClienteResponse(
+            "CONTA_CORRENTE",
+            InstituicaoResponse("ITAÚ UNIBANCO S.A.", "60701190"),
+            "0001",
+            "125987",
+            TitluarResponse("ae93a61c-0642-43b3-bb8e-a17072295955", "Alefh Silva", "40764442058")
+        ))
+
+        BDDMockito.given(comunicacaoChavePixBCB.cadastra(ChavePixBBCRequest(
+            CPF,
+            "40764442058",
+            BankAccount
+                ("60701190", "0001", "483201", "CACC"),
+            Owner(
+                "NATURAL_PERSON", "Alefh Silva", "40764442058"
+            )))).willReturn((ChavePixBCBResponse(
+            "CPF",
+            "40764442058",
+            BankAccount(
+                "60701190",
+                "0001",
+                "483201",
+                "CACC"
+            ),
+            Owner(
+                "NATURAL_PERSON",
+                "Alefh Silva",
+                "40764442058"
+            ),
+            "2021-05-24T18:38:47.827087"
+        )))
+
         val response = grpcClient.cadastrarChavePix(KeyManagerPixRequest.newBuilder()
-            .setClienteId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setClienteId("ae93a61c-0642-43b3-bb8e-a17072295955")
             .setTipoChave(TipoChave.CPF)
-            .setValChave("02467781054")
+            .setValChave("40764442058")
             .setTipo(CONTA_CORRENTE)
             .build())
 
@@ -305,5 +345,10 @@ class CadastraChaveControllerTest(
     @MockBean(ConsultaErpItau::class)
     fun consultaMock(): ConsultaErpItau{
         return Mockito.mock(ConsultaErpItau::class.java)
+    }
+
+    @MockBean(ComunicacaoChavePixBCB::class)
+    fun cadastraBcb(): ComunicacaoChavePixBCB{
+        return Mockito.mock(ComunicacaoChavePixBCB::class.java)
     }
 }

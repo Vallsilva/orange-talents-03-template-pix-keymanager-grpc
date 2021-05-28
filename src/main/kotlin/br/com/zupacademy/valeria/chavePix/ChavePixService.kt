@@ -29,10 +29,12 @@ class ChavePixService (@Inject val chavePixRepository: ChavePixRepository,
             throw ChavePixExistenteException("Chave Pix ja cadastrada caralho!")
 
         }
+
         //criar anotação para validar isso também
         if (clientBCB.consulta(chavePix.valChave) != null) {
             throw ChavePixExistenteException("A chave Pix ja esta cadastrada no Banco Central do Brasil")
         }
+
         val chavePixBCBResponse = clientBCB.cadastra(
             ChavePixBBCRequest(
                 keyType = chavePix.tipoChave,
